@@ -5,16 +5,18 @@ const fs = std.fs;
 
 pub const zline = struct {
     allocator: std.mem.Allocator,
+    writer: fs.File.Writer,
     paths: ArrayList([]const u8),
     dirs: ArrayList(fs.IterableDir.Entry),
     files: ArrayList(fs.IterableDir.Entry),
 
-    pub fn init(allocator: std.mem.Allocator) !zline {
+    pub fn init(allocator: std.mem.Allocator, writer: anytype) !zline {
         return zline{
             .allocator = allocator,
             .paths = ArrayList([]const u8).init(allocator),
             .dirs = ArrayList(fs.IterableDir.Entry).init(allocator),
             .files = ArrayList(fs.IterableDir.Entry).init(allocator),
+            .writer = writer,
         };
     }
 
@@ -40,11 +42,11 @@ pub const zline = struct {
                 switch (file.kind) {
                     .file => {
                         try self.files.append(file);
-                        std.debug.print("File: {s}\n", .{file.name});
+                        try self.writer.print("File: {s}\n", .{file.name});
                     },
                     .directory => {
                         try self.dirs.append(file);
-                        std.debug.print("Dir: {s}\n", .{file.name});
+                        try self.writer.print("Dir: {s}\n", .{file.name});
                     },
                     else => continue,
                 }
@@ -57,8 +59,10 @@ pub const zline = struct {
 pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     const allocator = std.heap.page_allocator;
-    var zl = try zline.init(allocator);
+    const writer = std.io.getStdOut();
+    var zl = try zline.init(allocator, writer.writer());
     defer zl.deinit();
+    
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
@@ -78,15 +82,14 @@ pub fn main() !void {
     defer res.deinit();
 
     if (res.args.help != 0)
-        std.debug.print("--help\n", .{});    
+        std.debug.print(        
+        \\-h, --help             Display this help and exit.
+        \\-n, --number <usize>   An option parameter, which takes a value.
+        \\-s, --string <str>...  An option parameter which can be specified multiple times.
+        \\<str>...
+        \\
+        , .{});    
     for (res.args.string) |s| {
         _ = try zl.run(s);
     }
-}
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
 }
