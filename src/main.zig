@@ -1,19 +1,27 @@
 const std = @import("std");
 const clap = @import("clap");
+const ArrayList = std.ArrayList;
+const fs = std.fs;
 
 pub const zline = struct {
     allocator: std.mem.Allocator,
-    paths: std.ArrayList([]const u8),
+    paths: ArrayList([]const u8),
+    dirs: ArrayList(fs.IterableDir.Entry),
+    files: ArrayList(fs.IterableDir.Entry),
 
     pub fn init(allocator: std.mem.Allocator) !zline {
         return zline{
             .allocator = allocator,
-            .paths = std.ArrayList([]const u8).init(allocator),
+            .paths = ArrayList([]const u8).init(allocator),
+            .dirs = ArrayList(fs.IterableDir.Entry).init(allocator),
+            .files = ArrayList(fs.IterableDir.Entry).init(allocator),
         };
     }
 
     pub fn deinit(self: *zline) void {
         self.paths.deinit();
+        self.dirs.deinit();
+        self.files.deinit();
     }
 
     pub fn run(self: *zline, args: []const u8) !i32 {
@@ -26,10 +34,20 @@ pub const zline = struct {
         }
 
         for (self.paths.items) |item| {
-            var dir = try std.fs.openIterableDirAbsolute(item, .{});
+            var dir = try fs.openIterableDirAbsolute(item, .{});
             var itr = dir.iterate();
             while (try itr.next()) |file| {
-                std.debug.print("{s}\n", .{file.name});
+                switch (file.kind) {
+                    .file => {
+                        try self.files.append(file);
+                        std.debug.print("File: {s}\n", .{file.name});
+                    },
+                    .directory => {
+                        try self.dirs.append(file);
+                        std.debug.print("Dir: {s}\n", .{file.name});
+                    },
+                    else => continue,
+                }
             }
         }
         return 0;
