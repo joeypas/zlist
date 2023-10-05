@@ -1,0 +1,7 @@
+id: pdjgfa8cxo32js63xsk0kv06czfmq81q54om0dm186sj97ne
+name: zlist
+main: src/main.zig
+license: none
+description:  
+root_dependencies:
+  - src: git https://github.com/Hejsil/zig-clap.git
