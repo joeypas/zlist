@@ -2,3 +2,5 @@ zig-*
 .zigmod
 deps.zig
 files.zig
+build
+clean

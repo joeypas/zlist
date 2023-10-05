@@ -42,17 +42,31 @@ pub const zline = struct {
                 switch (file.kind) {
                     .file => {
                         try self.files.append(file);
-                        try self.writer.print("File: {s}\n", .{file.name});
                     },
                     .directory => {
                         try self.dirs.append(file);
-                        try self.writer.print("Dir: {s}\n", .{file.name});
                     },
                     else => continue,
                 }
             }
+            try print_files(self);
+            try print_dirs(self);
         }
+
+
         return 0;
+    }
+
+    fn print_dirs(self: *zline) !void {
+        return for (self.dirs.items) |dir| {
+            try self.writer.print("Dir: {s}\n", .{dir.name});
+        };
+    }
+
+    fn print_files(self: *zline) !void {
+        return for (self.files.items) |file| {
+            try self.writer.print("File: {s}\n", .{file.name});
+        };
     }
 };
 
