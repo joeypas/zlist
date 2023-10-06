@@ -74,14 +74,14 @@ pub fn main() !void {
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     const allocator = std.heap.page_allocator;
     const writer = std.io.getStdOut();
+    defer writer.close();
     var zl = try zline.init(allocator, writer.writer());
     defer zl.deinit();
     
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
-        \\-n, --number <usize>   An option parameter, which takes a value.
-        \\-s, --string <str>...  An option parameter which can be specified multiple times.
+        \\-p, --path <str>...    Display the listing of this path.
         \\<str>...
         \\
     );
@@ -97,13 +97,13 @@ pub fn main() !void {
 
     if (res.args.help != 0)
         std.debug.print(        
-        \\-h, --help             Display this help and exit.
-        \\-n, --number <usize>   An option parameter, which takes a value.
-        \\-s, --string <str>...  An option parameter which can be specified multiple times.
-        \\<str>...
-        \\
-        , .{});    
-    for (res.args.string) |s| {
+            \\-h, --help             Display this help and exit.
+            \\-p, --path <str>...    Display the listing of this path.
+            \\<str>...
+            \\
+            , .{}
+        );    
+    for (res.args.path) |s| {
         _ = try zl.run(s);
     }
 }
