@@ -1,22 +1,28 @@
 const std = @import("std");
 const clap = @import("clap");
+const ansi_term = @import("ansi-term");
 const ArrayList = std.ArrayList;
 const fs = std.fs;
+const Style = ansi_term.style.Style;
 
 pub const zline = struct {
     allocator: std.mem.Allocator,
     writer: fs.File.Writer,
+    f_style: Style,
+    d_style: Style,
     paths: ArrayList([]const u8),
-    dirs: ArrayList(fs.IterableDir.Entry),
-    files: ArrayList(fs.IterableDir.Entry),
+    dirs: ArrayList([]const u8),
+    files: ArrayList([]const u8),
 
-    pub fn init(allocator: std.mem.Allocator, writer: anytype) !zline {
+    pub fn init(allocator: std.mem.Allocator, writer: anytype, fst: Style, dst: Style) !zline {
         return zline{
             .allocator = allocator,
             .paths = ArrayList([]const u8).init(allocator),
-            .dirs = ArrayList(fs.IterableDir.Entry).init(allocator),
-            .files = ArrayList(fs.IterableDir.Entry).init(allocator),
+            .dirs = ArrayList([]const u8).init(allocator),
+            .files = ArrayList([]const u8).init(allocator),
             .writer = writer,
+            .f_style = fst,
+            .d_style = dst
         };
     }
 
@@ -41,10 +47,10 @@ pub const zline = struct {
             while (try itr.next()) |file| {
                 switch (file.kind) {
                     .file => {
-                        try self.files.append(file);
+                        try self.files.append(file.name);
                     },
                     .directory => {
-                        try self.dirs.append(file);
+                        try self.dirs.append(file.name);
                     },
                     else => continue,
                 }
@@ -58,26 +64,38 @@ pub const zline = struct {
     }
 
     fn print_dirs(self: *zline) !void {
+        try ansi_term.format.resetStyle(self.writer);
+        try ansi_term.format.updateStyle(self.writer, self.d_style, undefined);
         return for (self.dirs.items) |dir| {
-            try self.writer.print("Dir: {s}\n", .{dir.name});
+            try self.writer.print("Dir: {s}\n", .{dir});
         };
     }
 
     fn print_files(self: *zline) !void {
+        try ansi_term.format.resetStyle(self.writer);
+        try ansi_term.format.updateStyle(self.writer, self.f_style, undefined);
         return for (self.files.items) |file| {
-            try self.writer.print("File: {s}\n", .{file.name});
+            try self.writer.print("File: {s}\n", .{file});
         };
     }
 };
 
 pub fn main() !void {
+    var f_style: Style = undefined;
+    f_style.foreground = .Cyan;
+    f_style.font_style = ansi_term.style.FontStyle{};
+    f_style.background = .Default;
+    var d_style: Style = undefined;
+    d_style.foreground = .Red;
+    d_style.font_style = ansi_term.style.FontStyle{};
+    d_style.background = .Default;
+
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     const allocator = std.heap.page_allocator;
     const writer = std.io.getStdOut();
     defer writer.close();
-    var zl = try zline.init(allocator, writer.writer());
+    var zl = try zline.init(allocator, writer.writer(), f_style, d_style);
     defer zl.deinit();
-    
 
     const params = comptime clap.parseParamsComptime(
         \\-h, --help             Display this help and exit.
