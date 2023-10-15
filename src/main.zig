@@ -1,6 +1,8 @@
 const std = @import("std");
 const clap = @import("clap");
 const ansi_term = @import("ansi-term");
+const cell = @import("./output/cell.zig");
+const TextCell = cell.TextCell;
 const ArrayList = std.ArrayList;
 const fs = std.fs;
 const Style = ansi_term.style.Style;
@@ -66,16 +68,34 @@ pub const zline = struct {
     fn print_dirs(self: *zline) !void {
         try ansi_term.format.resetStyle(self.writer);
         try ansi_term.format.updateStyle(self.writer, self.d_style, undefined);
+        var i: usize = 0;
         return for (self.dirs.items) |dir| {
-            try self.writer.print("Dir: {s}\n", .{dir});
+            try self.writer.print("{s}", .{dir});
+            if (i == 2) {
+                try self.writer.print("\n", .{});
+                i = 0;
+                continue;
+            } else {
+                try self.writer.print("\t", .{});
+            }
+            i += 1;
         };
     }
 
     fn print_files(self: *zline) !void {
         try ansi_term.format.resetStyle(self.writer);
         try ansi_term.format.updateStyle(self.writer, self.f_style, undefined);
+        var i: usize = 0;
         return for (self.files.items) |file| {
-            try self.writer.print("File: {s}\n", .{file});
+            try self.writer.print("{s}", .{file});
+            if (i == 2) {
+                try self.writer.print("\n", .{});
+                i = 0;
+                continue;
+            } else {
+                try self.writer.print("\t", .{});
+            }
+            i += 1;
         };
     }
 };
