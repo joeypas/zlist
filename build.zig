@@ -1,5 +1,4 @@
 const std = @import("std");
-const deps = @import("./deps.zig");
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
@@ -25,7 +24,25 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    deps.addAllTo(exe);
+    // using duck as a dependency
+    const clap = b.dependency("clap", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const ansi_term = b.dependency("ansi_term", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    // duck has exported itself as duck
+    // now you are re-exporting duck
+    // as a module in your project with the name duck
+    exe.addModule("clap", clap.module("clap"));
+    exe.addModule("ansi_term", ansi_term.module("ansi-term"));
+    // you need to link to the output of the build process
+    // that was done by the duck package
+    // in this case, duck is outputting a library
+    // to which your project need to link as well
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default

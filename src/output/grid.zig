@@ -20,12 +20,14 @@ pub const Grid = struct {
         };
     }
 
+    pub fn findLongest(self: *Grid) !void {
+        _ = self;
+    }
+
     pub fn deinit(self: *Grid) void {
         self.items.deinit();
         self.grid.deinit();
     }
-
-    
 
     pub fn print(self: *Grid, writer: std.fs.File.Writer) !void {
         var i: usize = 0;

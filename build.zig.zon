@@ -1,0 +1,23 @@
+.{
+    .paths = .{""},
+    // the name of your project
+    .name = "zlist",
+    // the version of your project
+    .version = "0.0.1",
+    
+    // the actual packages you need as dependencies of your project 
+    .dependencies = .{
+        // the name of the package
+        .clap = .{
+            // the url to the release of the module
+            .url = "https://github.com/Hejsil/zig-clap/archive/refs/heads/master.tar.gz",
+
+            // the hash of the module, this is not the checksum of the tarball
+            .hash = "12206795542ab1c19251aac74db20dda4c2abf3289597dd02d52b1d70175064fb298",
+        },
+        .ansi_term = .{
+            .url = "https://github.com/ziglibs/ansi-term/archive/refs/heads/master.tar.gz",
+            .hash = "122091d4b153e372da16c41b1d5f9b8b7b744a0464edcac8a7027d43c61e0ab9450c",
+        },
+    },
+}

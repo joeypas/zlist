@@ -1,6 +1,6 @@
 const std = @import("std");
 const clap = @import("clap");
-const ansi_term = @import("ansi-term");
+const ansi_term = @import("ansi_term");
 const cell = @import("./output/cell.zig");
 const TextCell = cell.TextCell;
 const ArrayList = std.ArrayList;
@@ -17,15 +17,7 @@ pub const zline = struct {
     files: ArrayList([]const u8),
 
     pub fn init(allocator: std.mem.Allocator, writer: anytype, fst: Style, dst: Style) !zline {
-        return zline{
-            .allocator = allocator,
-            .paths = ArrayList([]const u8).init(allocator),
-            .dirs = ArrayList([]const u8).init(allocator),
-            .files = ArrayList([]const u8).init(allocator),
-            .writer = writer,
-            .f_style = fst,
-            .d_style = dst
-        };
+        return zline{ .allocator = allocator, .paths = ArrayList([]const u8).init(allocator), .dirs = ArrayList([]const u8).init(allocator), .files = ArrayList([]const u8).init(allocator), .writer = writer, .f_style = fst, .d_style = dst };
     }
 
     pub fn deinit(self: *zline) void {
@@ -60,7 +52,6 @@ pub const zline = struct {
             try print_files(self);
             try print_dirs(self);
         }
-
 
         return 0;
     }
@@ -110,7 +101,6 @@ pub fn main() !void {
     d_style.font_style = ansi_term.style.FontStyle{};
     d_style.background = .Default;
 
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
     const allocator = std.heap.page_allocator;
     const writer = std.io.getStdOut();
     defer writer.close();
@@ -134,13 +124,12 @@ pub fn main() !void {
     defer res.deinit();
 
     if (res.args.help != 0)
-        std.debug.print(        
+        std.debug.print(
             \\-h, --help             Display this help and exit.
             \\-p, --path <str>...    Display the listing of this path.
             \\<str>...
             \\
-            , .{}
-        );    
+        , .{});
     for (res.args.path) |s| {
         _ = try zl.run(s);
     }

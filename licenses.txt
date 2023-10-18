@@ -1,9 +1,0 @@
-none:
-- This
-
-MIT:
-= https://spdx.org/licenses/MIT
-- git https://github.com/Hejsil/zig-clap.git
-
-Unspecified:
-- git https://github.com/ziglibs/ansi-term.git
